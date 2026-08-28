@@ -1,0 +1,2840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>F1 2026 AI Performance Analyzer</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --red: #e10600;
+  --gold: #ffd700;
+  --blue: #3b82f6;
+  --cyan: #06b6d4;
+  --dark: #020617;
+  --glass: rgba(255,255,255,0.06);
+  --border: rgba(255,255,255,0.12);
+}
+
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background: var(--dark);
+  color: white;
+  overflow-x: hidden;
+  overflow-y: auto;
+  min-height: 100vh;
+}
+
+/* ── BACKGROUND ── */
+.bg {
+  position: fixed;
+  inset: 0;
+  background: url('https://i.pinimg.com/1200x/bb/d0/22/bbd022af7156d667f2a029056654ea88.jpg') no-repeat center center / cover;
+  filter: brightness(0.28) saturate(1.2);
+  z-index: 0;
+  transform: scale(1.04);
+  animation: bgDrift 20s ease-in-out infinite alternate;
+}
+
+@keyframes bgDrift {
+  from { transform: scale(1.04) translateX(0); }
+  to   { transform: scale(1.04) translateX(-1.5%); }
+}
+
+/* ── NOISE OVERLAY ── */
+.noise {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/* ── VIGNETTE ── */
+.vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(2,6,23,0.85) 100%);
+  pointer-events: none;
+}
+
+/* ── RACING LINE ACCENT ── */
+.racing-line {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to bottom, transparent, var(--red), var(--gold), transparent);
+  z-index: 3;
+  opacity: 0.7;
+  animation: lineFlash 3s ease-in-out infinite;
+}
+
+@keyframes lineFlash {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+/* ── NAVBAR ── */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 40px;
+  z-index: 10;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: rgba(2,6,23,0.4);
+  backdrop-filter: blur(20px);
+}
+
+.navbar-logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.navbar-logo img {
+  height: 32px;
+  filter: drop-shadow(0 0 8px rgba(225,6,0,0.6));
+}
+
+.navbar-label {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,0.4);
+  text-transform: uppercase;
+}
+
+.navbar-year {
+  font-family: 'Orbitron', monospace;
+  font-size: 13px;
+  color: var(--gold);
+  letter-spacing: 2px;
+  border: 1px solid rgba(255,215,0,0.3);
+  padding: 4px 12px;
+  border-radius: 4px;
+}
+
+/* ── HERO ── */
+.hero {
+  position: relative;
+  z-index: 5;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+/* ── EYEBROW ── */
+.eyebrow {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  letter-spacing: 6px;
+  color: var(--red);
+  text-transform: uppercase;
+  margin-bottom: 18px;
+  opacity: 0;
+  animation: fadeUp 0.7s ease 0.3s forwards;
+}
+
+/* ── TITLE ── */
+.hero-title {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(32px, 5vw, 62px);
+  font-weight: 900;
+  line-height: 1.1;
+  text-align: center;
+  max-width: 820px;
+  letter-spacing: -1px;
+  opacity: 0;
+  animation: fadeUp 0.7s ease 0.5s forwards;
+}
+
+.hero-title .accent {
+  background: linear-gradient(90deg, var(--blue), var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-title .red-accent {
+  color: var(--red);
+  -webkit-text-fill-color: var(--red);
+}
+
+/* ── SUBTITLE ── */
+.hero-sub {
+  font-size: 18px;
+  color: rgba(255,255,255,0.45);
+  margin: 18px 0 50px;
+  letter-spacing: 1px;
+  opacity: 0;
+  animation: fadeUp 0.7s ease 0.7s forwards;
+}
+
+/* ── BUTTON GROUP ── */
+.btn-group {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+  opacity: 0;
+  animation: fadeUp 0.7s ease 0.9s forwards;
+}
+
+.btn {
+  position: relative;
+  padding: 16px 36px;
+  font-family: 'Orbitron', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: white;
+  text-transform: uppercase;
+  transition: transform 0.25s, box-shadow 0.25s;
+  overflow: hidden;
+}
+
+.btn::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.08);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.btn:hover::after { opacity: 1; }
+.btn:hover { transform: translateY(-3px); }
+.btn:active { transform: translateY(0); }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--red) 0%, #b00000 100%);
+  box-shadow: 0 4px 24px rgba(225,6,0,0.35);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 8px 32px rgba(225,6,0,0.55);
+}
+
+.btn-secondary {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+
+.btn-secondary:hover {
+  border-color: rgba(255,255,255,0.25);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+/* ── STATS BAR ── */
+.stats-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  gap: 60px;
+  padding: 18px 40px;
+  background: rgba(2,6,23,0.7);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255,255,255,0.07);
+  opacity: 0;
+  animation: fadeUp 0.7s ease 1.1s forwards;
+}
+
+.stat {
+  text-align: center;
+}
+
+.stat-val {
+  font-family: 'Orbitron', monospace;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================================
+   REACT BITS — SCROLL EXPAND
+   CSS ported from the official ScrollExpand component.
+========================================================= */
+
+.scroll-expand {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.scroll-expand--scroller {
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior: contain;
+}
+
+.scroll-expand--scroller::-webkit-scrollbar {
+  display: none;
+}
+
+.scroll-expand__track {
+  position: relative;
+  width: 100%;
+}
+
+.scroll-expand__stage {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  overflow: hidden;
+  --se-title-size: 4rem;
+}
+
+.scroll-expand__frame {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(21% 29% 21% 29% round 24px);
+  will-change: clip-path;
+}
+
+.scroll-expand__media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  will-change: transform;
+  transform-origin: center;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.scroll-expand__scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.75),
+    rgba(0, 0, 0, 0.1) 45%,
+    rgba(0, 0, 0, 0.35)
+  );
+  opacity: 0;
+}
+
+.scroll-expand__overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6%;
+  opacity: 0;
+  will-change: opacity, transform;
+  color: white;
+}
+
+.scroll-expand__overlay h2 {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(24px, 4vw, 58px);
+  margin-bottom: 14px;
+}
+
+.scroll-expand__overlay p {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(16px, 2vw, 23px);
+  color: rgba(255,255,255,0.72);
+  max-width: 680px;
+}
+
+.scroll-expand__title {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0 6%;
+  text-align: center;
+  font-family: 'Orbitron', monospace;
+  font-size: var(--se-title-size);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  will-change: opacity, transform;
+}
+
+.scroll-expand__hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 1.25rem;
+  text-align: center;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 0.8125rem;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.55);
+  pointer-events: none;
+  will-change: opacity, transform;
+}
+
+.scroll-expand-spacer {
+  height: 520px;
+  position: relative;
+  z-index: 5;
+  background: var(--dark);
+}
+
+.scroll-expand-section {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  height: 100vh;
+  background: transparent;
+}
+
+
+/* ── ORIGINAL HERO AS THE FIRST SCROLL STATE ── */
+.scroll-hero-content {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  pointer-events: none;
+  padding: 80px 24px 120px;
+  will-change: opacity, transform;
+}
+
+.scroll-hero-content .eyebrow {
+  opacity: 1;
+  animation: none;
+}
+
+.scroll-hero-content .hero-title {
+  opacity: 1;
+  animation: none;
+}
+
+.scroll-hero-content .hero-sub {
+  opacity: 1;
+  animation: none;
+}
+
+.scroll-hero-content .btn-group {
+  opacity: 1;
+  animation: none;
+  pointer-events: auto;
+}
+
+.scroll-hero-content .btn {
+  pointer-events: auto;
+}
+
+.scroll-hero-content .hero-title {
+  font-size: clamp(32px, 5vw, 62px);
+}
+
+.post-scroll-cta {
+  position: relative;
+  z-index: 6;
+  min-height: 560px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 90px 24px 140px;
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(225, 6, 0, 0.14),
+      transparent 42%
+    ),
+    var(--dark);
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.post-scroll-cta__inner {
+  width: min(920px, 100%);
+  text-align: center;
+  padding: 70px 32px;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 20px;
+  background: rgba(255,255,255,0.035);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 25px 90px rgba(0,0,0,0.35);
+}
+
+.post-scroll-cta__eyebrow {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  letter-spacing: 5px;
+  color: var(--red);
+  margin-bottom: 18px;
+}
+
+.post-scroll-cta h2 {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(28px, 4vw, 52px);
+  line-height: 1.1;
+  margin-bottom: 16px;
+}
+
+.post-scroll-cta__text {
+  color: rgba(255,255,255,0.52);
+  font-size: 18px;
+  margin-bottom: 34px;
+}
+
+.post-scroll-buttons {
+  opacity: 1;
+  animation: none;
+}
+
+@media (max-width: 700px) {
+  .scroll-expand__title {
+    --se-title-size: 2.4rem;
+  }
+
+  .scroll-expand-spacer {
+    height: 380px;
+  }
+}
+
+
+/* =========================================================
+   BUILD TO DOMINATE — COLOR BENDS
+========================================================= */
+
+.build-dominance {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 680px;
+  overflow: hidden;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  isolation: isolate;
+}
+
+.color-bends-root {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.75s ease,
+    visibility 0s linear 0s;
+  will-change: opacity;
+}
+
+.color-bends-global {
+  isolation: isolate;
+}
+
+.color-bends-root canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.build-dominance-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(0, 0, 0, 0.08),
+      rgba(0, 0, 0, 0.55)
+    ),
+    linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.18),
+      rgba(0, 0, 0, 0.58)
+    );
+}
+
+.build-dominance-content {
+  position: relative;
+  z-index: 2;
+  width: min(1200px, 92vw);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  padding: 80px 20px 90px;
+}
+
+.build-eyebrow {
+  margin-bottom: 34px;
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(10px, 1.2vw, 15px);
+  font-weight: 500;
+  letter-spacing: 0.42em;
+  color: #ec1308;
+  text-shadow: 0 0 20px rgba(236, 19, 8, 0.45);
+}
+
+.stroke-text-mount {
+  position: relative;
+  width: min(1120px, 94vw);
+  height: clamp(130px, 18vw, 230px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+}
+
+.stroke-text-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.stroke-text-svg text {
+  font-family: 'Orbitron', monospace;
+  font-size: 128px;
+  font-weight: 800;
+  letter-spacing: -4px;
+  dominant-baseline: middle;
+  text-anchor: middle;
+  paint-order: stroke fill;
+}
+
+.build-subtitle {
+  margin: 30px auto 0;
+  max-width: 760px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: clamp(17px, 2vw, 25px);
+  letter-spacing: 0.05em;
+  color: rgba(248, 250, 252, 0.72);
+}
+
+.build-scroll-hint {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  font-family: 'Orbitron', monospace;
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  color: rgba(248, 250, 252, 0.55);
+}
+
+.build-scroll-arrow {
+  font-size: 23px;
+  line-height: 1;
+  color: #ec1308;
+  animation: buildScrollArrow 1.5s ease-in-out infinite;
+}
+
+@keyframes buildScrollArrow {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translateY(7px);
+    opacity: 1;
+  }
+}
+
+
+/* =========================================================
+   POST-SCROLL OPTIONS
+========================================================= */
+
+.race-options {
+  position: relative;
+  z-index: 6;
+  min-height: 620px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(236, 19, 8, 0.12),
+      transparent 48%
+    ),
+    #050812;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+.race-options-inner {
+  width: min(1000px, 90vw);
+  text-align: center;
+  padding: 100px 20px;
+}
+
+.race-options-eyebrow {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  letter-spacing: 0.36em;
+  color: #ec1308;
+  margin-bottom: 22px;
+}
+
+.race-options h2 {
+  margin: 0;
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(34px, 6vw, 76px);
+  line-height: 1;
+  color: #f8fafc;
+}
+
+.race-options p {
+  margin: 22px auto 42px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 21px;
+  color: rgba(248,250,252,0.62);
+}
+
+.race-options-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.race-option-button {
+  min-width: 310px;
+  height: 64px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.14);
+  padding: 0 28px;
+  font-family: 'Orbitron', monospace;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.race-option-button:hover {
+  transform: translateY(-3px);
+}
+
+.race-option-button span {
+  margin-right: 10px;
+}
+
+.race-option-primary {
+  color: #fff;
+  background: linear-gradient(
+    135deg,
+    #ec1308,
+    #b90d07
+  );
+  border-color: #ec1308;
+  box-shadow:
+    0 12px 36px rgba(236, 19, 8, 0.25);
+}
+
+.race-option-primary:hover {
+  box-shadow:
+    0 16px 44px rgba(236, 19, 8, 0.4);
+}
+
+.race-option-secondary {
+  color: #f8fafc;
+  background: rgba(255,255,255,0.035);
+}
+
+.race-option-secondary:hover {
+  border-color: rgba(255,255,255,0.32);
+}
+
+@media (max-width: 700px) {
+
+  .build-dominance {
+    min-height: 600px;
+  }
+
+  .build-eyebrow {
+    letter-spacing: 0.24em;
+  }
+
+  .stroke-text-mount {
+    height: 130px;
+  }
+
+  .build-subtitle {
+    margin-top: 16px;
+  }
+
+  .race-option-button {
+    min-width: min(310px, 88vw);
+  }
+}
+
+</style>
+</head>
+
+<body>
+
+<div
+  id="colorBendsRoot"
+  class="color-bends-root color-bends-global"
+  aria-hidden="true"
+></div>
+
+<div class="bg"></div>
+<div class="noise"></div>
+<div class="vignette"></div>
+<div class="racing-line"></div>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="navbar-logo">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/3/33/F1.svg" alt="F1">
+    <span class="navbar-label">AI Performance Analyzer</span>
+  </div>
+  <span class="navbar-year">2026 Season</span>
+</nav>
+
+<!-- =========================================================
+     BUILD TO DOMINATE — FIRST VIEW
+========================================================= -->
+
+<section
+  id="buildToDominate"
+  class="build-dominance"
+  aria-label="Build to dominate"
+>
+  <div class="build-dominance-scrim"></div>
+
+  <div class="build-dominance-content">
+
+    <div class="build-eyebrow">
+      FORMULA 1 · INTELLIGENCE SUITE
+    </div>
+
+    <div
+      id="strokeTextMount"
+      class="stroke-text-mount"
+      aria-label="Built to dominate."
+    ></div>
+
+    <p class="build-subtitle">
+      Engineer the car. Master the strategy. Dominate the season.
+    </p>
+
+    <div class="build-scroll-hint">
+      <span>SCROLL TO BEGIN</span>
+      <span class="build-scroll-arrow">↓</span>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- =========================================================
+     SCROLL EXPAND
+========================================================= -->
+
+<section
+  id="scrollExpandSection"
+  class="scroll-expand scroll-expand-section"
+  aria-label="F1 performance showcase"
+>
+  <div id="scrollExpandTrack" class="scroll-expand__track">
+    <div id="scrollExpandStage" class="scroll-expand__stage">
+
+      <div id="scrollExpandFrame" class="scroll-expand__frame">
+
+        <img
+          id="scrollExpandMedia"
+          class="scroll-expand__media"
+          src="https://i.pinimg.com/1200x/bb/d0/22/bbd022af7156d667f2a029056654ea88.jpg"
+          alt="Formula 1 car racing at speed"
+          draggable="false"
+        >
+
+        <div
+          id="scrollExpandScrim"
+          class="scroll-expand__scrim"
+        ></div>
+
+        <div
+          id="scrollExpandOverlay"
+          class="scroll-expand__overlay"
+        >
+          <h2>Every lap. Every decision. Every advantage.</h2>
+          <p>
+            AI-powered F1 performance analysis, race strategy and
+            career development built around the 2026 championship.
+          </p>
+        </div>
+
+      </div>
+
+      <div
+        id="scrollExpandTitle"
+        class="scroll-expand__title"
+      >
+        Race Strategy. Engineered to Win.
+      </div>
+
+      <div
+        id="scrollExpandHint"
+        class="scroll-expand__hint"
+      >
+        SCROLL TO EXPAND
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- =========================================================
+     POST-SCROLL OPTIONS
+========================================================= -->
+
+<section
+  id="raceOptions"
+  class="race-options"
+  aria-label="Race options"
+>
+  <div class="race-options-inner">
+
+    <div class="race-options-eyebrow">
+      FORMULA 1 · INTELLIGENCE SUITE
+    </div>
+
+    <h2>
+      Ready to dominate?
+    </h2>
+
+    <p>
+      Choose where you want to take the race.
+    </p>
+
+    <div class="race-options-buttons">
+
+      <button
+        type="button"
+        class="race-option-button race-option-primary"
+        onclick="goDashboard()"
+      >
+        <span>🏎️</span>
+        MY TEAM DASHBOARD
+      </button>
+
+      <button
+        type="button"
+        class="race-option-button race-option-secondary"
+        onclick="goTeams()"
+      >
+        <span>📊</span>
+        VIEW OTHER TEAMS
+      </button>
+
+    </div>
+
+  </div>
+</section>
+
+
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-val">11</div>
+    <div class="stat-label">Constructors</div>
+  </div>
+  <div class="stat">
+    <div class="stat-val">24</div>
+    <div class="stat-label">Race Circuits</div>
+  </div>
+  <div class="stat">
+    <div class="stat-val">AI</div>
+    <div class="stat-label">Strategy Engine</div>
+  </div>
+  <div class="stat">
+    <div class="stat-val">2026</div>
+    <div class="stat-label">Championship</div>
+  </div>
+</div>
+
+
+<script type="module">
+/*
+ * React Bits visual components ported to the existing vanilla frontend.
+ *
+ * ColorBends props:
+ * rotation={75}
+ * speed={0.35}
+ * colors={["#ec1308","#e0cce0","#080808"]}
+ * transparent
+ * autoRotate={0}
+ * scale={1}
+ * frequency={1}
+ * warpStrength={1}
+ * mouseInfluence={1}
+ * parallax={0.5}
+ * noise={0.15}
+ * iterations={1}
+ * intensity={1.5}
+ * bandWidth={6}
+ *
+ * StrokeText props:
+ * text="Built to dominate."
+ * strokeColor="#A78BFA"
+ * fillColor="#F8FAFC"
+ * strokeWidth={1.4}
+ * drawDuration={1.6}
+ * fillDelay={0.2}
+ * stagger={0.05}
+ * ease="power2.out"
+ * trigger="mount"
+ * fillMode="wipe"
+ * fontSize={128}
+ * fontWeight={800}
+ * letterSpacing={-4}
+ * reverse={false}
+ */
+
+import * as THREE from
+  "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js";
+
+
+/* =========================================================
+   COLOR BENDS — exact shader/behavior
+========================================================= */
+
+(() => {
+
+  const container =
+    document.getElementById(
+      "colorBendsRoot"
+    );
+
+  if (!container) {
+    return;
+  }
+
+  const MAX_COLORS = 8;
+
+  const frag = `
+    #define MAX_COLORS ${MAX_COLORS}
+
+    uniform vec2 uCanvas;
+    uniform float uTime;
+    uniform float uSpeed;
+    uniform vec2 uRot;
+    uniform int uColorCount;
+    uniform vec3 uColors[MAX_COLORS];
+    uniform int uTransparent;
+    uniform float uScale;
+    uniform float uFrequency;
+    uniform float uWarpStrength;
+    uniform vec2 uPointer;
+    uniform float uMouseInfluence;
+    uniform float uParallax;
+    uniform float uNoise;
+    uniform int uIterations;
+    uniform float uIntensity;
+    uniform float uBandWidth;
+
+    varying vec2 vUv;
+
+    void main() {
+
+      float t =
+        uTime * uSpeed;
+
+      vec2 p =
+        vUv * 2.0 - 1.0;
+
+      p +=
+        uPointer *
+        uParallax *
+        0.1;
+
+      vec2 rp =
+        vec2(
+          p.x * uRot.x -
+            p.y * uRot.y,
+          p.x * uRot.y +
+            p.y * uRot.x
+        );
+
+      vec2 q =
+        vec2(
+          rp.x *
+            (uCanvas.x /
+             uCanvas.y),
+          rp.y
+        );
+
+      q /=
+        max(
+          uScale,
+          0.0001
+        );
+
+      q /=
+        0.5 +
+        0.2 *
+        dot(q, q);
+
+      q +=
+        0.2 *
+        cos(t) -
+        7.56;
+
+      vec2 toward =
+        (uPointer - rp);
+
+      q +=
+        toward *
+        uMouseInfluence *
+        0.2;
+
+      for (
+        int j = 0;
+        j < 5;
+        j++
+      ) {
+
+        if (
+          j >=
+          uIterations - 1
+        ) {
+          break;
+        }
+
+        vec2 rr =
+          sin(
+            1.5 *
+            (q.yx *
+             uFrequency) +
+            2.0 *
+            cos(
+              q *
+              uFrequency
+            )
+          );
+
+        q +=
+          (rr - q) *
+          0.15;
+      }
+
+      vec3 col =
+        vec3(0.0);
+
+      float a = 1.0;
+
+      if (
+        uColorCount > 0
+      ) {
+
+        vec2 s = q;
+
+        vec3 sumCol =
+          vec3(0.0);
+
+        float cover = 0.0;
+
+        for (
+          int i = 0;
+          i < MAX_COLORS;
+          ++i
+        ) {
+
+          if (
+            i >=
+            uColorCount
+          ) {
+            break;
+          }
+
+          s -= 0.01;
+
+          vec2 r =
+            sin(
+              1.5 *
+              (
+                s.yx *
+                uFrequency
+              ) +
+              2.0 *
+              cos(
+                s *
+                uFrequency
+              )
+            );
+
+          float m0 =
+            length(
+              r +
+              sin(
+                5.0 *
+                r.y *
+                uFrequency -
+                3.0 *
+                t +
+                float(i)
+              ) /
+              4.0
+            );
+
+          float kBelow =
+            clamp(
+              uWarpStrength,
+              0.0,
+              1.0
+            );
+
+          float kMix =
+            pow(
+              kBelow,
+              0.3
+            );
+
+          float gain =
+            1.0 +
+            max(
+              uWarpStrength -
+              1.0,
+              0.0
+            );
+
+          vec2 disp =
+            (r - s) *
+            kBelow;
+
+          vec2 warped =
+            s +
+            disp *
+            gain;
+
+          float m1 =
+            length(
+              warped +
+              sin(
+                5.0 *
+                warped.y *
+                uFrequency -
+                3.0 *
+                t +
+                float(i)
+              ) /
+              4.0
+            );
+
+          float m =
+            mix(
+              m0,
+              m1,
+              kMix
+            );
+
+          float w =
+            1.0 -
+            exp(
+              -uBandWidth /
+              exp(
+                uBandWidth *
+                m
+              )
+            );
+
+          sumCol +=
+            uColors[i] *
+            w;
+
+          cover =
+            max(
+              cover,
+              w
+            );
+        }
+
+        col =
+          clamp(
+            sumCol,
+            0.0,
+            1.0
+          );
+
+        a =
+          uTransparent > 0
+            ? cover
+            : 1.0;
+
+      } else {
+
+        vec2 s = q;
+
+        for (
+          int k = 0;
+          k < 3;
+          ++k
+        ) {
+
+          s -= 0.01;
+
+          vec2 r =
+            sin(
+              1.5 *
+              (
+                s.yx *
+                uFrequency
+              ) +
+              2.0 *
+              cos(
+                s *
+                uFrequency
+              )
+            );
+
+          float m0 =
+            length(
+              r +
+              sin(
+                5.0 *
+                r.y *
+                uFrequency -
+                3.0 *
+                t +
+                float(k)
+              ) /
+              4.0
+            );
+
+          float kBelow =
+            clamp(
+              uWarpStrength,
+              0.0,
+              1.0
+            );
+
+          float kMix =
+            pow(
+              kBelow,
+              0.3
+            );
+
+          float gain =
+            1.0 +
+            max(
+              uWarpStrength -
+              1.0,
+              0.0
+            );
+
+          vec2 disp =
+            (r - s) *
+            kBelow;
+
+          vec2 warped =
+            s +
+            disp *
+            gain;
+
+          float m1 =
+            length(
+              warped +
+              sin(
+                5.0 *
+                warped.y *
+                uFrequency -
+                3.0 *
+                t +
+                float(k)
+              ) /
+              4.0
+            );
+
+          float m =
+            mix(
+              m0,
+              m1,
+              kMix
+            );
+
+          col[k] =
+            1.0 -
+            exp(
+              -uBandWidth /
+              exp(
+                uBandWidth *
+                m
+              )
+            );
+        }
+
+        a =
+          uTransparent > 0
+            ? max(
+                max(
+                  col.r,
+                  col.g
+                ),
+                col.b
+              )
+            : 1.0;
+      }
+
+      col *=
+        uIntensity;
+
+      if (
+        uNoise >
+        0.0001
+      ) {
+
+        float n =
+          fract(
+            sin(
+              dot(
+                gl_FragCoord.xy +
+                vec2(uTime),
+                vec2(
+                  12.9898,
+                  78.233
+                )
+              )
+            ) *
+            43758.5453123
+          );
+
+        col +=
+          (n - 0.5) *
+          uNoise;
+
+        col =
+          clamp(
+            col,
+            0.0,
+            1.0
+          );
+      }
+
+      vec3 rgb =
+        (uTransparent > 0)
+          ? col * a
+          : col;
+
+      gl_FragColor =
+        vec4(
+          rgb,
+          a
+        );
+    }
+  `;
+
+  const vert = `
+    varying vec2 vUv;
+
+    void main() {
+      vUv = uv;
+
+      gl_Position =
+        vec4(
+          position,
+          1.0
+        );
+    }
+  `;
+
+  /* Exact requested props. */
+  const rotation = 75;
+  const speed = 0.35;
+  const colors = [
+    "#ec1308",
+    "#e0cce0",
+    "#080808"
+  ];
+  const transparent = true;
+  const autoRotate = 0;
+  const scale = 1;
+  const frequency = 1;
+  const warpStrength = 1;
+  const mouseInfluence = 1;
+  const parallax = 0.5;
+  const noise = 0.15;
+  const iterations = 1;
+  const intensity = 1.5;
+  const bandWidth = 6;
+
+  const scene =
+    new THREE.Scene();
+
+  const camera =
+    new THREE.OrthographicCamera(
+      -1,
+      1,
+      1,
+      -1,
+      0,
+      1
+    );
+
+  const geometry =
+    new THREE.PlaneGeometry(
+      2,
+      2
+    );
+
+  const uColorsArray =
+    Array.from(
+      {
+        length:
+          MAX_COLORS
+      },
+      () =>
+        new THREE.Vector3(
+          0,
+          0,
+          0
+        )
+    );
+
+  const material =
+    new THREE.ShaderMaterial({
+      vertexShader: vert,
+      fragmentShader: frag,
+
+      uniforms: {
+
+        uCanvas: {
+          value:
+            new THREE.Vector2(
+              1,
+              1
+            )
+        },
+
+        uTime: {
+          value: 0
+        },
+
+        uSpeed: {
+          value: speed
+        },
+
+        uRot: {
+          value:
+            new THREE.Vector2(
+              1,
+              0
+            )
+        },
+
+        uColorCount: {
+          value: 0
+        },
+
+        uColors: {
+          value:
+            uColorsArray
+        },
+
+        uTransparent: {
+          value:
+            transparent
+              ? 1
+              : 0
+        },
+
+        uScale: {
+          value: scale
+        },
+
+        uFrequency: {
+          value: frequency
+        },
+
+        uWarpStrength: {
+          value: warpStrength
+        },
+
+        uPointer: {
+          value:
+            new THREE.Vector2(
+              0,
+              0
+            )
+        },
+
+        uMouseInfluence: {
+          value:
+            mouseInfluence
+        },
+
+        uParallax: {
+          value:
+            parallax
+        },
+
+        uNoise: {
+          value: noise
+        },
+
+        uIterations: {
+          value: iterations
+        },
+
+        uIntensity: {
+          value: intensity
+        },
+
+        uBandWidth: {
+          value: bandWidth
+        }
+      },
+
+      premultipliedAlpha:
+        true,
+
+      transparent:
+        true
+    });
+
+  const mesh =
+    new THREE.Mesh(
+      geometry,
+      material
+    );
+
+  scene.add(mesh);
+
+  const renderer =
+    new THREE.WebGLRenderer({
+      antialias: false,
+      powerPreference:
+        "high-performance",
+      alpha: true
+    });
+
+  renderer.outputColorSpace =
+    THREE.SRGBColorSpace;
+
+  renderer.setPixelRatio(
+    Math.min(
+      window.devicePixelRatio ||
+        1,
+      2
+    )
+  );
+
+  renderer.setClearColor(
+    0x000000,
+    0
+  );
+
+  renderer.domElement.style.width =
+    "100%";
+
+  renderer.domElement.style.height =
+    "100%";
+
+  renderer.domElement.style.display =
+    "block";
+
+  container.appendChild(
+    renderer.domElement
+  );
+
+  const clock =
+    new THREE.Clock();
+
+  const pointerTarget =
+    new THREE.Vector2(
+      0,
+      0
+    );
+
+  const pointerCurrent =
+    new THREE.Vector2(
+      0,
+      0
+    );
+
+  const pointerSmooth =
+    8;
+
+  const toVec3 =
+    hex => {
+
+      const h =
+        hex
+          .replace(
+            "#",
+            ""
+          )
+          .trim();
+
+      const v =
+        h.length === 3
+          ? [
+              parseInt(
+                h[0] +
+                h[0],
+                16
+              ),
+              parseInt(
+                h[1] +
+                h[1],
+                16
+              ),
+              parseInt(
+                h[2] +
+                h[2],
+                16
+              )
+            ]
+          : [
+              parseInt(
+                h.slice(
+                  0,
+                  2
+                ),
+                16
+              ),
+              parseInt(
+                h.slice(
+                  2,
+                  4
+                ),
+                16
+              ),
+              parseInt(
+                h.slice(
+                  4,
+                  6
+                ),
+                16
+              )
+            ];
+
+      return new THREE.Vector3(
+        v[0] / 255,
+        v[1] / 255,
+        v[2] / 255
+      );
+    };
+
+  const arr =
+    colors
+      .filter(Boolean)
+      .slice(
+        0,
+        MAX_COLORS
+      )
+      .map(toVec3);
+
+  for (
+    let i = 0;
+    i < MAX_COLORS;
+    i++
+  ) {
+
+    const vec =
+      material
+        .uniforms
+        .uColors
+        .value[i];
+
+    if (
+      i <
+      arr.length
+    ) {
+      vec.copy(
+        arr[i]
+      );
+    } else {
+      vec.set(
+        0,
+        0,
+        0
+      );
+    }
+  }
+
+  material
+    .uniforms
+    .uColorCount
+    .value =
+    arr.length;
+
+  const resize =
+    () => {
+
+      const w =
+        container.clientWidth ||
+        1;
+
+      const h =
+        container.clientHeight ||
+        1;
+
+      renderer.setSize(
+        w,
+        h,
+        false
+      );
+
+      material
+        .uniforms
+        .uCanvas
+        .value
+        .set(
+          w,
+          h
+        );
+    };
+
+  resize();
+
+  if (
+    "ResizeObserver" in
+    window
+  ) {
+
+    const ro =
+      new ResizeObserver(
+        resize
+      );
+
+    ro.observe(
+      container
+    );
+
+  } else {
+
+    window.addEventListener(
+      "resize",
+      resize
+    );
+  }
+
+  container.addEventListener(
+    "pointermove",
+    e => {
+
+      const rect =
+        container.getBoundingClientRect();
+
+      const x =
+        (
+          (
+            e.clientX -
+            rect.left
+          ) /
+          (rect.width || 1)
+        ) *
+        2 -
+        1;
+
+      const y =
+        -(
+          (
+            (
+              e.clientY -
+              rect.top
+            ) /
+            (rect.height || 1)
+          ) *
+          2 -
+          1
+        );
+
+      pointerTarget.set(
+        x,
+        y
+      );
+    }
+  );
+
+  const loop =
+    () => {
+
+      const dt =
+        clock.getDelta();
+
+      const elapsed =
+        clock.elapsedTime;
+
+      material
+        .uniforms
+        .uTime
+        .value =
+        elapsed;
+
+      const deg =
+        (
+          rotation %
+          360
+        ) +
+        autoRotate *
+        elapsed;
+
+      const rad =
+        deg *
+        Math.PI /
+        180;
+
+      const c =
+        Math.cos(
+          rad
+        );
+
+      const s =
+        Math.sin(
+          rad
+        );
+
+      material
+        .uniforms
+        .uRot
+        .value
+        .set(
+          c,
+          s
+        );
+
+      const amt =
+        Math.min(
+          1,
+          dt *
+          pointerSmooth
+        );
+
+      pointerCurrent.lerp(
+        pointerTarget,
+        amt
+      );
+
+      material
+        .uniforms
+        .uPointer
+        .value
+        .copy(
+          pointerCurrent
+        );
+
+      renderer.render(
+        scene,
+        camera
+      );
+
+      requestAnimationFrame(
+        loop
+      );
+    };
+
+  requestAnimationFrame(
+    loop
+  );
+
+})();
+
+
+/* =========================================================
+   STROKE TEXT — exact requested values
+========================================================= */
+
+(() => {
+
+  const mount =
+    document.getElementById(
+      "strokeTextMount"
+    );
+
+  if (!mount) {
+    return;
+  }
+
+  const text =
+    "Built to dominate.";
+
+  const strokeColor =
+    "#A78BFA";
+
+  const fillColor =
+    "#F8FAFC";
+
+  const strokeWidth =
+    1.4;
+
+  const drawDuration =
+    1.6;
+
+  const fillDelay =
+    0.2;
+
+  const stagger =
+    0.05;
+
+  const fontSize =
+    128;
+
+  const fontWeight =
+    800;
+
+  const letterSpacing =
+    -4;
+
+  const reverse =
+    false;
+
+  /*
+   * StrokeText uses character-level
+   * drawing. SVG text is split into
+   * individual <text> nodes so the
+   * stroke reveal can be staggered.
+   */
+  const chars =
+    Array.from(
+      text
+    );
+
+  const svgNS =
+    "http://www.w3.org/2000/svg";
+
+  const svg =
+    document.createElementNS(
+      svgNS,
+      "svg"
+    );
+
+  svg.classList.add(
+    "stroke-text-svg"
+  );
+
+  svg.setAttribute(
+    "viewBox",
+    "0 0 1200 220"
+  );
+
+  svg.setAttribute(
+    "preserveAspectRatio",
+    "xMidYMid meet"
+  );
+
+  const textNodes =
+    [];
+
+  const charWidth =
+    1200 /
+    Math.max(
+      chars.length,
+      1
+    );
+
+  const startX =
+    600 -
+    (
+      charWidth *
+      chars.length
+    ) /
+    2 +
+    charWidth /
+    2;
+
+  chars.forEach(
+    (char, index) => {
+
+      const node =
+        document.createElementNS(
+          svgNS,
+          "text"
+        );
+
+      node.textContent =
+        char === " "
+          ? "\u00A0"
+          : char;
+
+      node.setAttribute(
+        "x",
+        String(
+          startX +
+          index *
+          charWidth
+        )
+      );
+
+      node.setAttribute(
+        "y",
+        "110"
+      );
+
+      node.setAttribute(
+        "fill",
+        fillColor
+      );
+
+      node.setAttribute(
+        "stroke",
+        strokeColor
+      );
+
+      node.setAttribute(
+        "stroke-width",
+        String(
+          strokeWidth
+        )
+      );
+
+      node.setAttribute(
+        "stroke-linejoin",
+        "round"
+      );
+
+      node.setAttribute(
+        "stroke-linecap",
+        "round"
+      );
+
+      node.style.fontSize =
+        `${fontSize}px`;
+
+      node.style.fontWeight =
+        String(
+          fontWeight
+        );
+
+      node.style.letterSpacing =
+        `${letterSpacing}px`;
+
+      node.style.fontFamily =
+        "'Orbitron', monospace";
+
+      node.style.paintOrder =
+        "stroke fill";
+
+      node.style.opacity =
+        "0";
+
+      /*
+       * Use a long dash and animate
+       * the dash offset. This gives
+       * the same outlined-letter
+       * drawing effect.
+       */
+      node.style.strokeDasharray =
+        "1000";
+
+      node.style.strokeDashoffset =
+        reverse
+          ? "0"
+          : "1000";
+
+      node.style.fillOpacity =
+        "0";
+
+      svg.appendChild(
+        node
+      );
+
+      textNodes.push(
+        node
+      );
+    }
+  );
+
+  mount.appendChild(
+    svg
+  );
+
+  /*
+   * Mount trigger is intentionally
+   * immediate, matching trigger="mount".
+   */
+  const start =
+    performance.now();
+
+  const easePower2Out =
+    t =>
+      1 -
+      Math.pow(
+        1 - t,
+        2
+      );
+
+  const animate =
+    now => {
+
+      const elapsed =
+        (
+          now -
+          start
+        ) /
+        1000;
+
+      let complete =
+        true;
+
+      textNodes.forEach(
+        (node, index) => {
+
+          const localStart =
+            index *
+            stagger;
+
+          const local =
+            Math.max(
+              0,
+              Math.min(
+                1,
+                (
+                  elapsed -
+                  localStart
+                ) /
+                drawDuration
+              )
+            );
+
+          const eased =
+            easePower2Out(
+              local
+            );
+
+          if (
+            local <
+            1
+          ) {
+            complete =
+              false;
+          }
+
+          node.style.opacity =
+            local >
+            0
+              ? "1"
+              : "0";
+
+          node.style.strokeDashoffset =
+            reverse
+              ? String(
+                  -1000 *
+                  (1 - eased)
+                )
+              : String(
+                  1000 *
+                  (1 - eased)
+                );
+
+          const fillProgress =
+            Math.max(
+              0,
+              Math.min(
+                1,
+                (
+                  elapsed -
+                  localStart -
+                  fillDelay
+                ) /
+                drawDuration
+              )
+            );
+
+          node.style.fillOpacity =
+            String(
+              easePower2Out(
+                fillProgress
+              )
+            );
+        }
+      );
+
+      if (
+        !complete
+      ) {
+        requestAnimationFrame(
+          animate
+        );
+      } else {
+
+        textNodes.forEach(
+          node => {
+
+            node.style.opacity =
+              "1";
+
+            node.style.strokeDashoffset =
+              "0";
+
+            node.style.fillOpacity =
+              "1";
+          }
+        );
+      }
+    };
+
+  requestAnimationFrame(
+    animate
+  );
+
+})();
+
+
+/* =========================================================
+   SCROLL EXPAND
+========================================================= */
+
+(() => {
+
+  const root =
+    document.getElementById(
+      "scrollExpandSection"
+    );
+
+  const track =
+    document.getElementById(
+      "scrollExpandTrack"
+    );
+
+  const stage =
+    document.getElementById(
+      "scrollExpandStage"
+    );
+
+  const frame =
+    document.getElementById(
+      "scrollExpandFrame"
+    );
+
+  const media =
+    document.getElementById(
+      "scrollExpandMedia"
+    );
+
+  const title =
+    document.getElementById(
+      "scrollExpandTitle"
+    );
+
+  const overlay =
+    document.getElementById(
+      "scrollExpandOverlay"
+    );
+
+  const scrim =
+    document.getElementById(
+      "scrollExpandScrim"
+    );
+
+  const hint =
+    document.getElementById(
+      "scrollExpandHint"
+    );
+
+  const colorBends =
+    document.getElementById(
+      "colorBendsRoot"
+    );
+
+  if (
+    !root ||
+    !track ||
+    !stage ||
+    !frame ||
+    !media
+  ) {
+    return;
+  }
+
+  /* Exact requested ScrollExpand props. */
+  const startWidth = 42;
+  const startHeight = 58;
+  const startRadius = 24;
+  const endRadius = 0;
+  const mediaZoom = 1.35;
+  const scrollDistance = 1.2;
+  const holdDistance = 0.35;
+  const smoothing = 0.1;
+  const overlayScrim = 0.45;
+  const useWindowScroll = true;
+  const enabled = true;
+
+  const reduceMotion =
+    window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+  let current = 0;
+  let target = 0;
+  let stageH = 0;
+  let running = false;
+  let raf = 0;
+
+  const clamp =
+    (v, a, b) =>
+      v < a
+        ? a
+        : v > b
+          ? b
+          : v;
+
+  const smoothstep =
+    (edge0, edge1, x) => {
+
+      const t =
+        clamp(
+          (
+            x -
+            edge0
+          ) /
+          (
+            edge1 -
+            edge0 ||
+            1e-6
+          ),
+          0,
+          1
+        );
+
+      return (
+        t *
+        t *
+        (
+          3 -
+          2 *
+          t
+        )
+      );
+    };
+
+  const updateGlobalColorBends =
+    p => {
+
+      if (!colorBends) {
+        return;
+      }
+
+      /*
+       * Keep the exact ColorBends animation alive throughout
+       * the intro and ScrollExpand.
+       *
+       * It only fades away when the car reaches its final
+       * full-screen state.
+       */
+      const fade =
+        smoothstep(
+          0.90,
+          1.0,
+          p
+        );
+
+      colorBends.style.opacity =
+        String(
+          1 -
+          fade
+        );
+
+      if (fade >= 0.999) {
+        colorBends.style.visibility =
+          "hidden";
+      } else {
+        colorBends.style.visibility =
+          "visible";
+      }
+    };
+
+  const applyProgress =
+    p => {
+
+      updateGlobalColorBends(
+        p
+      );
+
+      const e =
+        smoothstep(
+          0,
+          1,
+          p
+        );
+
+      const w =
+        startWidth +
+        (
+          100 -
+          startWidth
+        ) *
+        e;
+
+      const h =
+        startHeight +
+        (
+          100 -
+          startHeight
+        ) *
+        e;
+
+      const ix =
+        Math.max(
+          0,
+          (
+            100 -
+            w
+          ) /
+          2
+        );
+
+      const iy =
+        Math.max(
+          0,
+          (
+            100 -
+            h
+          ) /
+          2
+        );
+
+      const r =
+        startRadius +
+        (
+          endRadius -
+          startRadius
+        ) *
+        e;
+
+      frame.style.clipPath =
+        `inset(${iy}% ${ix}% ${iy}% ${ix}% round ${r}px)`;
+
+      media.style.transform =
+        `scale(${mediaZoom + (1 - mediaZoom) * e})`;
+
+      if (scrim) {
+        scrim.style.opacity =
+          String(
+            overlayScrim *
+            e
+          );
+      }
+
+      if (title) {
+
+        const out =
+          smoothstep(
+            0.4,
+            0.88,
+            p
+          );
+
+        title.style.opacity =
+          String(
+            1 -
+            out
+          );
+
+        title.style.transform =
+          `translate3d(0, ${-28 * out}px, 0) scale(${1 + 0.06 * out})`;
+      }
+
+      if (hint) {
+
+        const gone =
+          smoothstep(
+            0,
+            0.12,
+            p
+          );
+
+        hint.style.opacity =
+          String(
+            1 -
+            gone
+          );
+
+        hint.style.transform =
+          `translate3d(0, ${8 * gone}px, 0)`;
+      }
+
+      if (overlay) {
+
+        const inn =
+          smoothstep(
+            0.68,
+            1,
+            p
+          );
+
+        overlay.style.opacity =
+          String(
+            inn
+          );
+
+        overlay.style.transform =
+          `translate3d(0, ${18 * (1 - inn)}px, 0)`;
+      }
+    };
+
+  const measure =
+    () => {
+
+      stageH =
+        window.innerHeight;
+
+      if (
+        stageH <= 0
+      ) {
+        return;
+      }
+
+      stage.style.height =
+        `${stageH}px`;
+
+      track.style.height =
+        `${stageH * (
+          1 +
+          Math.max(
+            0,
+            scrollDistance
+          ) +
+          Math.max(
+            0,
+            holdDistance
+          )
+        )}px`;
+    };
+
+  const readProgress =
+    () => {
+
+      if (!enabled) {
+        return 1;
+      }
+
+      const span =
+        stageH *
+        Math.max(
+          0.01,
+          scrollDistance
+        );
+
+      const top =
+        track
+          .getBoundingClientRect()
+          .top;
+
+      return clamp(
+        -top /
+        span,
+        0,
+        1
+      );
+    };
+
+  const tick =
+    () => {
+
+      const k =
+        smoothing <= 0
+          ? 1
+          : 1 -
+            Math.exp(
+              -1 /
+              (
+                60 *
+                smoothing
+              )
+            );
+
+      current +=
+        (
+          target -
+          current
+        ) *
+        k;
+
+      if (
+        Math.abs(
+          target -
+          current
+        ) <
+        0.0004
+      ) {
+
+        current =
+          target;
+
+        running =
+          false;
+      }
+
+      applyProgress(
+        current
+      );
+
+      raf =
+        running
+          ? requestAnimationFrame(
+              tick
+            )
+          : 0;
+    };
+
+  const kick =
+    () => {
+
+      if (running) {
+        return;
+      }
+
+      running =
+        true;
+
+      if (!raf) {
+        raf =
+          requestAnimationFrame(
+            tick
+          );
+      }
+    };
+
+  const onScroll =
+    () => {
+
+      target =
+        readProgress();
+
+      if (
+        smoothing <= 0 ||
+        reduceMotion
+      ) {
+
+        current =
+          target;
+
+        applyProgress(
+          current
+        );
+
+        return;
+      }
+
+      kick();
+    };
+
+  const onResize =
+    () => {
+
+      measure();
+
+      target =
+        readProgress();
+
+      current =
+        target;
+
+      applyProgress(
+        current
+      );
+    };
+
+  measure();
+
+  target =
+    readProgress();
+
+  current =
+    target;
+
+  if (colorBends) {
+    colorBends.style.opacity =
+      "1";
+    colorBends.style.visibility =
+      "visible";
+  }
+
+  applyProgress(
+    current
+  );
+
+  window.addEventListener(
+    "scroll",
+    onScroll,
+    {
+      passive: true
+    }
+  );
+
+  window.addEventListener(
+    "resize",
+    onResize
+  );
+
+})();
+</script>
+
+<script>
+function goDashboard() {
+  window.location.href = "login.html?next=dashboard.html%3Fview%3Dmy";
+}
+
+function goTeams() {
+  window.location.href = "login.html?next=dashboard.html%3Fview%3Dother";
+}
+</script>
+</body>
+</html>

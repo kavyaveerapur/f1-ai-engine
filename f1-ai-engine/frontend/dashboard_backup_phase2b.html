@@ -1,0 +1,2838 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+>
+
+<title>F1 Dashboard</title>
+
+<link
+  href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap"
+  rel="stylesheet"
+>
+
+<style>
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --red: #e10600;
+  --gold: #ffd700;
+  --blue: #3b82f6;
+  --cyan: #06b6d4;
+  --dark: #020617;
+  --surface: rgba(255,255,255,0.05);
+  --surface-hover: rgba(255,255,255,0.09);
+  --border: rgba(255,255,255,0.10);
+  --border-bright: rgba(255,255,255,0.22);
+  --text-muted: rgba(255,255,255,0.45);
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.15);
+  border-radius: 3px;
+}
+
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background: var(--dark);
+  color: white;
+  scroll-behavior: smooth;
+}
+
+/* ══════════════════════════════
+   TOP NAV BAR
+══════════════════════════════ */
+
+.top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 62px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 24px;
+  background: rgba(2,6,23,0.92);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  z-index: 100;
+}
+
+.top-bar-logo {
+  height: 26px;
+  filter: drop-shadow(0 0 6px rgba(225,6,0,0.5));
+  margin-right: 6px;
+}
+
+.btn-nav {
+  padding: 8px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: rgba(255,255,255,0.75);
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.btn-nav:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-bright);
+  color: white;
+}
+
+.btn-nav.active {
+  background: rgba(225,6,0,0.18);
+  border-color: rgba(225,6,0,0.5);
+  color: #ff8080;
+}
+
+.top-bar-spacer {
+  margin-left: auto;
+}
+
+.top-bar-season {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 2px;
+  border: 1px solid rgba(255,215,0,0.25);
+  padding: 5px 12px;
+  border-radius: 4px;
+}
+
+/* ══════════════════════════════
+   HERO
+══════════════════════════════ */
+
+.hero {
+  min-height: 88vh;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 100px 60px 60px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.28) saturate(1.3);
+  z-index: 0;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    rgba(2,6,23,0.8) 0%,
+    transparent 55%,
+    rgba(2,6,23,0.4) 100%
+  );
+  z-index: 1;
+}
+
+.hero-bottom-fade {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 130px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--dark)
+  );
+  z-index: 2;
+}
+
+.hero-left {
+  position: relative;
+  z-index: 3;
+  max-width: 500px;
+}
+
+.team-badge {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.team-logo-box {
+  width: 70px;
+  height: 70px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid var(--border-bright);
+  background: rgba(255,255,255,0.08);
+  flex-shrink: 0;
+}
+
+.team-logo-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.team-tag {
+  font-family: 'Orbitron', monospace;
+  font-size: 9px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.tag-my {
+  color: var(--red);
+}
+
+.tag-view {
+  color: var(--gold);
+}
+
+.hero h1 {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(18px, 2.4vw, 34px);
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+.hero-meta {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.hero-meta-item {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.hero-meta-item span {
+  color: rgba(255,255,255,0.85);
+  font-weight: 600;
+}
+
+.hero-right {
+  position: relative;
+  z-index: 3;
+  flex-shrink: 0;
+}
+
+.hero-right img {
+  width: clamp(300px, 40vw, 580px);
+  filter: drop-shadow(0 20px 60px rgba(0,0,0,0.85));
+}
+
+/* ══════════════════════════════
+   SECTIONS
+══════════════════════════════ */
+
+.section {
+  padding: 50px;
+}
+
+.section-title {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.section-title::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── DRIVER CARDS ── */
+
+.drivers-grid {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.driver-card {
+  width: 155px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition:
+    transform 0.2s,
+    border-color 0.2s;
+}
+
+.driver-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-bright);
+}
+
+.driver-card img {
+  width: 100%;
+  height: 175px;
+  object-fit: cover;
+  display: block;
+}
+
+.driver-card p {
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+}
+
+/* ══════════════════════════════
+   STRATEGY ANALYZER
+══════════════════════════════ */
+
+#analyzeSection {
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.015);
+}
+
+.analyzer-grid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(190px, 1fr)
+  );
+  gap: 14px;
+  margin-bottom: 26px;
+}
+
+.analyzer-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  transition: border-color 0.2s;
+}
+
+.analyzer-card:hover {
+  border-color: var(--border-bright);
+}
+
+.analyzer-card label {
+  font-family: 'Orbitron', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 10px;
+}
+
+.analyzer-card select {
+  width: 100%;
+  padding: 9px 32px 9px 11px;
+  background: rgba(0,0,0,0.45);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: white;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+  appearance: none;
+  -webkit-appearance: none;
+
+  background-image: url(
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' fill='rgba(255,255,255,0.4)' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E"
+  );
+
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+}
+
+.analyzer-card select:focus {
+  border-color: var(--blue);
+}
+
+.analyzer-card select option {
+  background: #0f172a;
+  color: white;
+}
+
+/* ── GENERATE BUTTON ── */
+
+.btn-generate {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 34px;
+  background: linear-gradient(
+    135deg,
+    var(--blue),
+    var(--cyan)
+  );
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-family: 'Orbitron', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s,
+    opacity 0.2s;
+  box-shadow:
+    0 4px 20px rgba(59,130,246,0.3);
+}
+
+.btn-generate:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 8px 28px rgba(59,130,246,0.5);
+}
+
+.btn-generate:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none;
+}
+
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: none;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── RESULTS ── */
+
+#result {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(255px, 1fr)
+  );
+  gap: 16px;
+  margin-top: 28px;
+}
+
+.result-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: left;
+  animation: cardIn 0.35s ease both;
+}
+
+.result-card:nth-child(1) {
+  animation-delay: 0.04s;
+}
+
+.result-card:nth-child(2) {
+  animation-delay: 0.09s;
+}
+
+.result-card:nth-child(3) {
+  animation-delay: 0.14s;
+}
+
+.result-card:nth-child(4) {
+  animation-delay: 0.19s;
+}
+
+.result-card:nth-child(5) {
+  animation-delay: 0.24s;
+}
+
+.result-card:nth-child(6) {
+  animation-delay: 0.29s;
+}
+
+.result-card:nth-child(7) {
+  animation-delay: 0.34s;
+}
+
+.result-card:nth-child(8) {
+  animation-delay: 0.39s;
+}
+
+@keyframes cardIn {
+
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+}
+
+.result-card h3 {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--cyan);
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  text-transform: uppercase;
+}
+
+.result-card ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.result-card li {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: rgba(255,255,255,0.78);
+  padding-left: 14px;
+  position: relative;
+}
+
+.result-card li::before {
+  content: "▸";
+  position: absolute;
+  left: 0;
+  color: var(--blue);
+  font-size: 10px;
+  top: 3px;
+}
+
+/* loading */
+
+.loading-wrap {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 50px;
+}
+
+.loading-wrap p {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--blue);
+  animation: dotPulse 1.2s ease-in-out infinite;
+}
+
+.dot:nth-child(2) {
+  animation-delay: 0.2s;
+  background: var(--cyan);
+}
+
+.dot:nth-child(3) {
+  animation-delay: 0.4s;
+  background: var(--gold);
+}
+
+@keyframes dotPulse {
+
+  0%,
+  80%,
+  100% {
+    transform: scale(0.6);
+    opacity: 0.4;
+  }
+
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+}
+
+.error-msg {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 30px;
+  color: #f87171;
+  font-size: 15px;
+  border: 1px solid rgba(248,113,113,0.2);
+  border-radius: 10px;
+  background: rgba(248,113,113,0.05);
+}
+
+.debug-box {
+  grid-column: 1 / -1;
+  margin-top: 12px;
+  padding: 14px;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  font-family: monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  word-break: break-all;
+  white-space: pre-wrap;
+  display: none;
+}
+
+/* ══════════════════════════════
+   OTHER TEAMS
+══════════════════════════════ */
+
+#otherTeamsSection {
+  display: none;
+  border-top: 1px solid var(--border);
+}
+
+.teams-grid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(155px, 1fr)
+  );
+  gap: 14px;
+}
+
+.team-tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 14px;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    transform 0.2s,
+    border-color 0.2s,
+    background 0.2s;
+}
+
+.team-tile:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-bright);
+  background: var(--surface-hover);
+}
+
+.team-tile.selected {
+  border-color: rgba(255,215,0,0.5);
+  background: rgba(255,215,0,0.07);
+}
+
+.team-tile img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.team-tile p {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.75);
+  line-height: 1.3;
+}
+
+/* ── VIEW ONLY ── */
+
+.view-only-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255,215,0,0.07);
+  border: 1px solid rgba(255,215,0,0.22);
+  border-radius: 8px;
+  padding: 12px 18px;
+  margin-bottom: 24px;
+  font-size: 13px;
+  color: var(--gold);
+  font-weight: 600;
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+<!-- TOP NAV -->
+
+<div class="top-bar">
+
+  <img
+    class="top-bar-logo"
+    src="https://upload.wikimedia.org/wikipedia/commons/3/33/F1.svg"
+    alt="F1"
+  >
+
+  <button
+    class="btn-nav"
+    onclick="goBack()"
+  >
+    ⬅ Back
+  </button>
+
+  <button
+    class="btn-nav"
+    id="btnMyTeam"
+    onclick="switchToMyTeam()"
+  >
+    My Team
+  </button>
+
+  <button
+    class="btn-nav"
+    id="btnOtherTeams"
+    onclick="switchToOtherTeams()"
+  >
+    Other Teams
+  </button>
+
+  <div class="top-bar-spacer"></div>
+
+  <div class="top-bar-season">
+    2026 Season
+  </div>
+
+</div>
+
+
+<!-- HERO -->
+
+<div
+  class="hero"
+  id="heroSection"
+  style="display:none;"
+>
+
+  <div
+    class="hero-bg"
+    id="heroBg"
+  ></div>
+
+  <div class="hero-overlay"></div>
+
+  <div class="hero-bottom-fade"></div>
+
+
+  <div class="hero-left">
+
+    <div class="team-badge">
+
+      <div class="team-logo-box">
+
+        <img
+          id="teamLogo"
+          src=""
+          alt="Team Logo"
+        >
+
+      </div>
+
+
+      <div>
+
+        <div
+          class="team-tag tag-my"
+          id="tagMy"
+        >
+          ● MY TEAM
+        </div>
+
+        <div
+          class="team-tag tag-view"
+          id="tagView"
+          style="display:none;"
+        >
+          ◎ VIEW ONLY
+        </div>
+
+        <h1 id="teamName"></h1>
+
+      </div>
+
+    </div>
+
+
+    <div class="hero-meta">
+
+      <div class="hero-meta-item">
+        Principal:
+        <span id="principal"></span>
+      </div>
+
+      <div class="hero-meta-item">
+        Engine:
+        <span id="engine"></span>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div class="hero-right">
+
+    <img
+      id="carImage"
+      src=""
+      alt="F1 Car"
+    >
+
+  </div>
+
+</div>
+
+
+<!-- DRIVERS -->
+
+<div
+  class="section"
+  id="driversSection"
+  style="display:none;"
+>
+
+  <div class="section-title">
+    Drivers
+  </div>
+
+  <div
+    class="drivers-grid"
+    id="drivers"
+  ></div>
+
+</div>
+
+
+<!-- STRATEGY ANALYZER -->
+
+<div
+  class="section"
+  id="analyzeSection"
+  style="display:none;"
+>
+
+  <div class="section-title">
+    AI Strategy Analyzer
+  </div>
+
+
+  <div class="analyzer-grid">
+
+    <div class="analyzer-card">
+
+      <label>Circuit</label>
+
+      <select id="track"></select>
+
+    </div>
+
+
+    <div class="analyzer-card">
+
+      <label>Downforce Level</label>
+
+      <select id="downforce">
+        <option>High</option>
+        <option selected>Medium</option>
+        <option>Low</option>
+      </select>
+
+    </div>
+
+
+    <div class="analyzer-card">
+
+      <label>Drag Setting</label>
+
+      <select id="drag">
+        <option>High</option>
+        <option selected>Medium</option>
+        <option>Low</option>
+      </select>
+
+    </div>
+
+
+    <div class="analyzer-card">
+
+      <label>Tire Degradation</label>
+
+      <select id="tire">
+        <option>High</option>
+        <option selected>Medium</option>
+        <option>Low</option>
+      </select>
+
+    </div>
+
+
+    <div class="analyzer-card">
+
+      <label>Energy Efficiency</label>
+
+      <select id="energy_efficiency">
+        <option>High</option>
+        <option selected>Medium</option>
+        <option>Low</option>
+      </select>
+
+    </div>
+
+
+    <div class="analyzer-card">
+
+      <label>Straight Line Speed</label>
+
+      <select id="straight_line_speed">
+        <option>High</option>
+        <option selected>Medium</option>
+        <option>Low</option>
+      </select>
+
+    </div>
+
+
+    <div class="analyzer-card">
+
+      <label>Cornering</label>
+
+      <select id="cornering">
+        <option>High</option>
+        <option selected>Medium</option>
+        <option>Low</option>
+      </select>
+
+    </div>
+
+
+    <div class="analyzer-card">
+
+      <label>Weather</label>
+
+      <select id="weather">
+        <option selected>Dry</option>
+        <option>Wet</option>
+        <option>Mixed</option>
+      </select>
+
+    </div>
+
+  </div>
+
+
+  <button
+    class="btn-generate"
+    id="generateBtn"
+    onclick="analyze()"
+  >
+
+    <div
+      class="spinner"
+      id="spinner"
+    ></div>
+
+    <span id="generateLabel">
+      ⚡ Generate Strategy
+    </span>
+
+  </button>
+
+
+  <div id="result"></div>
+
+</div>
+
+
+<!-- OTHER TEAMS -->
+
+<div
+  class="section"
+  id="otherTeamsSection"
+  style="display:none;"
+>
+
+  <div class="section-title">
+    All Constructors
+  </div>
+
+
+  <div class="view-only-banner">
+
+    ◎ &nbsp;
+    View-only mode —
+    AI strategy analysis is currently available
+    from the My Team dashboard.
+
+  </div>
+
+
+  <div
+    class="teams-grid"
+    id="teamsGrid"
+  ></div>
+
+</div>
+
+
+<script>
+
+/* ══════════════════════════════
+   BACKEND CONFIGURATION
+══════════════════════════════ */
+
+const API_BASE_URL =
+  "http://127.0.0.1:5000/api";
+
+
+const DEFAULT_TEAM_NAME =
+  "Oracle Red Bull Racing";
+
+
+let teamsData = {};
+
+let teamsList = [];
+
+let circuitsData = [];
+
+let selectedOtherTeam = null;
+
+let myTeamId = null;
+
+let myTeamData = null;
+
+
+/* ══════════════════════════════
+   URL NORMALIZATION
+══════════════════════════════ */
+
+/*
+ * Your database currently contains some
+ * image URLs in Markdown format:
+ *
+ * [https://example.com/image.jpg](https://example.com/image.jpg)
+ *
+ * Browsers need only:
+ *
+ * https://example.com/image.jpg
+ *
+ * This function safely converts both forms.
+ */
+
+function normalizeUrl(value) {
+
+  if (!value) {
+    return "";
+  }
+
+
+  const text =
+    String(value).trim();
+
+
+  /*
+   * Match:
+   *
+   * [URL](URL)
+   */
+
+  const markdownMatch =
+    text.match(
+      /^\[([^\]]+)\]\(([^)]+)\)$/
+    );
+
+
+  if (markdownMatch) {
+
+    return markdownMatch[2];
+
+  }
+
+
+  /*
+   * Handle cases where only the
+   * first URL is needed.
+   */
+
+  if (
+    text.startsWith("[") &&
+    text.includes("](")
+  ) {
+
+    const closingBracket =
+      text.indexOf("](");
+
+    const openingParen =
+      closingBracket + 2;
+
+    const closingParen =
+      text.indexOf(
+        ")",
+        openingParen
+      );
+
+
+    if (
+      closingParen !== -1
+    ) {
+
+      return text.substring(
+        openingParen,
+        closingParen
+      );
+
+    }
+
+  }
+
+
+  return text;
+
+}
+
+
+/* ══════════════════════════════
+   BOOT
+══════════════════════════════ */
+
+async function boot() {
+
+  try {
+
+    await Promise.all([
+      loadTeamsFromBackend(),
+      loadCircuitsFromBackend()
+    ]);
+
+
+    /*
+     * Check whether a team has already
+     * been selected.
+     *
+     * Login will use this later.
+     */
+
+    const savedTeamId =
+      localStorage.getItem(
+        "selectedTeamId"
+      );
+
+
+    if (savedTeamId) {
+
+      const parsedId =
+        parseInt(
+          savedTeamId,
+          10
+        );
+
+
+      if (
+        Number.isInteger(parsedId) &&
+        teamsList.some(
+          team =>
+            team.id === parsedId
+        )
+      ) {
+
+        myTeamId = parsedId;
+
+      }
+
+    }
+
+
+    /*
+     * Temporary default.
+     */
+
+    if (!myTeamId) {
+
+      const defaultTeam =
+        teamsList.find(
+          team =>
+            team.name ===
+            DEFAULT_TEAM_NAME
+        );
+
+
+      if (defaultTeam) {
+
+        myTeamId =
+          defaultTeam.id;
+
+      }
+
+    }
+
+
+    if (myTeamId) {
+
+      await loadMyTeam();
+
+    }
+
+
+    const params =
+      new URLSearchParams(
+        window.location.search
+      );
+
+
+    const view =
+      params.get("view");
+
+
+    if (view === "other") {
+
+      switchToOtherTeams();
+
+    } else {
+
+      switchToMyTeam();
+
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      "Dashboard boot failed:",
+      error
+    );
+
+
+    showGlobalError(
+      "Unable to load F1 data from the Python backend."
+    );
+
+  }
+
+}
+
+
+/* ══════════════════════════════
+   BACKEND API
+══════════════════════════════ */
+
+async function loadTeamsFromBackend() {
+
+  const response =
+    await fetch(
+      `${API_BASE_URL}/teams/`
+    );
+
+
+  if (!response.ok) {
+
+    throw new Error(
+      `Teams API returned ${response.status}`
+    );
+
+  }
+
+
+  const data =
+    await response.json();
+
+
+  if (!Array.isArray(data)) {
+
+    throw new Error(
+      "Invalid teams response from backend."
+    );
+
+  }
+
+
+  teamsList =
+    data;
+
+
+  teamsData = {};
+
+
+  teamsList.forEach(
+    team => {
+
+      teamsData[
+        team.name
+      ] = team;
+
+    }
+  );
+
+}
+
+
+async function loadCircuitsFromBackend() {
+
+  const response =
+    await fetch(
+      `${API_BASE_URL}/circuits/`
+    );
+
+
+  if (!response.ok) {
+
+    throw new Error(
+      `Circuits API returned ${response.status}`
+    );
+
+  }
+
+
+  const data =
+    await response.json();
+
+
+  if (!Array.isArray(data)) {
+
+    throw new Error(
+      "Invalid circuits response from backend."
+    );
+
+  }
+
+
+  circuitsData =
+    data;
+
+
+  loadTracks();
+
+}
+
+
+async function fetchTeamFromBackend(
+  teamId
+) {
+
+  const response =
+    await fetch(
+      `${API_BASE_URL}/teams/${teamId}`
+    );
+
+
+  if (!response.ok) {
+
+    throw new Error(
+      `Team API returned ${response.status}`
+    );
+
+  }
+
+
+  const data =
+    await response.json();
+
+
+  if (
+    !data.success ||
+    !data.team
+  ) {
+
+    throw new Error(
+      "Invalid team data received from backend."
+    );
+
+  }
+
+
+  return data.team;
+
+}
+
+
+async function loadMyTeam() {
+
+  if (!myTeamId) {
+
+    throw new Error(
+      "No team selected."
+    );
+
+  }
+
+
+  myTeamData =
+    await fetchTeamFromBackend(
+      myTeamId
+    );
+
+
+  teamsData[
+    myTeamData.name
+  ] =
+    myTeamData;
+
+}
+
+
+/* ══════════════════════════════
+   NAVIGATION
+══════════════════════════════ */
+
+function goBack() {
+
+  window.location.href =
+    "index.html";
+
+}
+
+
+function setNavActive(
+  mode
+) {
+
+  document
+    .getElementById(
+      "btnMyTeam"
+    )
+    .classList
+    .toggle(
+      "active",
+      mode === "my"
+    );
+
+
+  document
+    .getElementById(
+      "btnOtherTeams"
+    )
+    .classList
+    .toggle(
+      "active",
+      mode === "other"
+    );
+
+}
+
+
+/* ══════════════════════════════
+   MY TEAM
+══════════════════════════════ */
+
+async function switchToMyTeam() {
+
+  setNavActive("my");
+
+
+  show(
+    "otherTeamsSection",
+    false
+  );
+
+
+  show(
+    "analyzeSection",
+    false
+  );
+
+
+  show(
+    "heroSection",
+    false
+  );
+
+
+  show(
+    "driversSection",
+    false
+  );
+
+
+  document
+    .getElementById(
+      "result"
+    )
+    .innerHTML = "";
+
+
+  try {
+
+    if (!myTeamData) {
+
+      await loadMyTeam();
+
+    }
+
+
+    renderTeamHero(
+      myTeamData,
+      true
+    );
+
+
+    show(
+      "heroSection",
+      true,
+      "flex"
+    );
+
+
+    show(
+      "driversSection",
+      true
+    );
+
+
+    show(
+      "analyzeSection",
+      true
+    );
+
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+
+
+  } catch (error) {
+
+    console.error(
+      "Failed to load my team:",
+      error
+    );
+
+
+    showTeamError(
+      error.message
+    );
+
+  }
+
+}
+
+
+/* ══════════════════════════════
+   OTHER TEAMS
+══════════════════════════════ */
+
+function switchToOtherTeams() {
+
+  setNavActive("other");
+
+
+  show(
+    "heroSection",
+    false
+  );
+
+
+  show(
+    "driversSection",
+    false
+  );
+
+
+  show(
+    "analyzeSection",
+    false
+  );
+
+
+  document
+    .getElementById(
+      "result"
+    )
+    .innerHTML = "";
+
+
+  show(
+    "otherTeamsSection",
+    true
+  );
+
+
+  renderTeamsGrid();
+
+
+  if (selectedOtherTeam) {
+
+    renderTeamHero(
+      selectedOtherTeam,
+      false
+    );
+
+
+    show(
+      "heroSection",
+      true,
+      "flex"
+    );
+
+
+    show(
+      "driversSection",
+      true
+    );
+
+  }
+
+
+  document
+    .getElementById(
+      "otherTeamsSection"
+    )
+    .scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+
+}
+
+
+async function loadOtherTeam(
+  teamId
+) {
+
+  try {
+
+    selectedOtherTeam =
+      await fetchTeamFromBackend(
+        teamId
+      );
+
+
+    renderTeamsGrid();
+
+
+    renderTeamHero(
+      selectedOtherTeam,
+      false
+    );
+
+
+    show(
+      "heroSection",
+      true,
+      "flex"
+    );
+
+
+    show(
+      "driversSection",
+      true
+    );
+
+
+    show(
+      "analyzeSection",
+      false
+    );
+
+
+    document
+      .getElementById(
+        "heroSection"
+      )
+      .scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+
+
+  } catch (error) {
+
+    console.error(
+      "Failed to load selected team:",
+      error
+    );
+
+
+    showTeamError(
+      error.message
+    );
+
+  }
+
+}
+
+
+/* ══════════════════════════════
+   RENDER TEAM HERO
+══════════════════════════════ */
+
+function renderTeamHero(
+  team,
+  isMyTeam
+) {
+
+  if (!team) {
+
+    return;
+
+  }
+
+
+  /*
+   * Normalize every URL coming
+   * from the backend.
+   */
+
+  const logoUrl =
+    normalizeUrl(
+      team.logo
+    );
+
+
+  const backgroundUrl =
+    normalizeUrl(
+      team.background ||
+      team.bg
+    );
+
+
+  const carUrl =
+    normalizeUrl(
+      team.car_details?.image ||
+      team.car
+    );
+
+
+  /*
+   * TEAM NAME
+   */
+
+  document
+    .getElementById(
+      "teamName"
+    )
+    .innerText =
+    team.name ||
+    "Unknown Team";
+
+
+  /*
+   * TEAM LOGO
+   */
+
+  const teamLogo =
+    document.getElementById(
+      "teamLogo"
+    );
+
+
+  teamLogo.src =
+    logoUrl;
+
+
+  /*
+   * HERO BACKGROUND
+   */
+
+  const heroBg =
+    document.getElementById(
+      "heroBg"
+    );
+
+
+  if (backgroundUrl) {
+
+    heroBg.style.backgroundImage =
+      `url("${backgroundUrl}")`;
+
+  } else {
+
+    heroBg.style.backgroundImage =
+      "none";
+
+  }
+
+
+  /*
+   * CAR IMAGE
+   */
+
+  const carImage =
+    document.getElementById(
+      "carImage"
+    );
+
+
+  carImage.src =
+    carUrl;
+
+
+  /*
+   * PRINCIPAL
+   */
+
+  document
+    .getElementById(
+      "principal"
+    )
+    .innerText =
+    team.principal ||
+    "N/A";
+
+
+  /*
+   * ENGINE
+   */
+
+  document
+    .getElementById(
+      "engine"
+    )
+    .innerText =
+    team.engine ||
+    "N/A";
+
+
+  /*
+   * MY TEAM / VIEW ONLY
+   */
+
+  document
+    .getElementById(
+      "tagMy"
+    )
+    .style.display =
+    isMyTeam
+      ? "block"
+      : "none";
+
+
+  document
+    .getElementById(
+      "tagView"
+    )
+    .style.display =
+    isMyTeam
+      ? "none"
+      : "block";
+
+
+  /*
+   * DRIVERS
+   */
+
+  const drivers =
+    Array.isArray(
+      team.drivers
+    )
+      ? team.drivers
+      : [];
+
+
+  document
+    .getElementById(
+      "drivers"
+    )
+    .innerHTML =
+    drivers
+      .map(
+        driver => {
+
+          const driverImage =
+            normalizeUrl(
+              driver.image ||
+              driver.img
+            );
+
+
+          return `
+            <div class="driver-card">
+
+              <img
+                src="${escapeHtml(driverImage)}"
+                alt="${escapeHtml(
+                  driver.name ||
+                  "Driver"
+                )}"
+                loading="lazy"
+              >
+
+              <p>
+                ${escapeHtml(
+                  driver.name ||
+                  "Unknown Driver"
+                )}
+              </p>
+
+            </div>
+          `;
+
+        }
+      )
+      .join("");
+
+
+  if (!drivers.length) {
+
+    document
+      .getElementById(
+        "drivers"
+      )
+      .innerHTML = `
+        <div class="error-msg">
+          No driver data available for this team.
+        </div>
+      `;
+
+  }
+
+}
+
+
+/* ══════════════════════════════
+   OTHER TEAMS GRID
+══════════════════════════════ */
+
+function renderTeamsGrid() {
+
+  const grid =
+    document.getElementById(
+      "teamsGrid"
+    );
+
+
+  const otherTeams =
+    teamsList.filter(
+      team =>
+        team.id !== myTeamId
+    );
+
+
+  grid.innerHTML =
+    otherTeams
+      .map(
+        team => {
+
+          const selected =
+            selectedOtherTeam &&
+            selectedOtherTeam.id ===
+              team.id
+              ? "selected"
+              : "";
+
+
+          const logoUrl =
+            normalizeUrl(
+              team.logo
+            );
+
+
+          return `
+            <div
+              class="team-tile ${selected}"
+              onclick="loadOtherTeam(${team.id})"
+            >
+
+              <img
+                src="${escapeHtml(logoUrl)}"
+                alt="${escapeHtml(
+                  team.name ||
+                  "Team"
+                )}"
+                loading="lazy"
+              >
+
+              <p>
+                ${escapeHtml(
+                  team.name ||
+                  "Unknown Team"
+                )}
+              </p>
+
+            </div>
+          `;
+
+        }
+      )
+      .join("");
+
+
+  if (!otherTeams.length) {
+
+    grid.innerHTML = `
+      <div class="error-msg">
+        No other teams available.
+      </div>
+    `;
+
+  }
+
+}
+
+
+/* ══════════════════════════════
+   CIRCUITS
+══════════════════════════════ */
+
+function loadTracks() {
+
+  const trackSelect =
+    document.getElementById(
+      "track"
+    );
+
+
+  if (!trackSelect) {
+
+    return;
+
+  }
+
+
+  trackSelect.innerHTML =
+    circuitsData
+      .map(
+        circuit => {
+
+          const value =
+            circuit.country ||
+            circuit.name;
+
+
+          const label =
+            circuit.name ||
+            circuit.country;
+
+
+          return `
+            <option
+              value="${escapeHtml(value)}"
+            >
+              ${escapeHtml(label)}
+            </option>
+          `;
+
+        }
+      )
+      .join("");
+
+
+  if (circuitsData.length) {
+
+    trackSelect.value =
+      circuitsData[0].country ||
+      circuitsData[0].name;
+
+  }
+
+}
+
+
+/* ══════════════════════════════
+   DISPLAY HELPER
+══════════════════════════════ */
+
+function show(
+  id,
+  visible,
+  displayType
+) {
+
+  const element =
+    document.getElementById(
+      id
+    );
+
+
+  if (!element) {
+
+    return;
+
+  }
+
+
+  element.style.display =
+    visible
+      ? (
+          displayType ||
+          "block"
+        )
+      : "none";
+
+}
+
+
+/* ══════════════════════════════
+   HTML ESCAPING
+══════════════════════════════ */
+
+function escapeHtml(
+  value
+) {
+
+  if (
+    value === null ||
+    value === undefined
+  ) {
+
+    return "";
+
+  }
+
+
+  return String(value)
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+    .replace(
+      /</g,
+      "&lt;"
+    )
+    .replace(
+      />/g,
+      "&gt;"
+    )
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+    .replace(
+      /'/g,
+      "&#039;"
+    );
+
+}
+
+
+/* ══════════════════════════════
+   ERROR HANDLING
+══════════════════════════════ */
+
+function showGlobalError(
+  message
+) {
+
+  document.body.innerHTML = `
+    <div
+      style="
+        min-height:100vh;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        padding:30px;
+        background:#020617;
+        color:white;
+        font-family:Rajdhani,sans-serif;
+        text-align:center;
+      "
+    >
+
+      <div>
+
+        <div
+          style="
+            font-family:Orbitron,monospace;
+            font-size:18px;
+            color:#f87171;
+            margin-bottom:12px;
+          "
+        >
+          F1 BACKEND CONNECTION ERROR
+        </div>
+
+        <div
+          style="
+            color:rgba(255,255,255,0.6);
+            font-size:15px;
+          "
+        >
+          ${escapeHtml(message)}
+        </div>
+
+      </div>
+
+    </div>
+  `;
+
+}
+
+
+function showTeamError(
+  message
+) {
+
+  const hero =
+    document.getElementById(
+      "heroSection"
+    );
+
+
+  if (hero) {
+
+    hero.style.display =
+      "none";
+
+  }
+
+
+  document
+    .getElementById(
+      "drivers"
+    )
+    .innerHTML = `
+      <div class="error-msg">
+
+        ⚠️ Unable to load team data.
+
+        <br>
+
+        <small
+          style="
+            opacity:.6;
+            margin-top:6px;
+            display:block;
+          "
+        >
+          ${escapeHtml(message)}
+        </small>
+
+      </div>
+    `;
+
+
+  show(
+    "driversSection",
+    true
+  );
+
+}
+
+
+/* ══════════════════════════════
+   FORMAT AI RESPONSE
+══════════════════════════════ */
+
+function formatResult(
+  raw
+) {
+
+  const text =
+    String(raw)
+      .replace(
+        /#{1,6}\s?/g,
+        ""
+      )
+      .replace(
+        /\*\*/g,
+        ""
+      )
+      .replace(
+        /\*/g,
+        ""
+      );
+
+
+  const sections =
+    text
+      .split(/\n{2,}/)
+      .map(
+        section =>
+          section.trim()
+      )
+      .filter(Boolean);
+
+
+  return sections
+    .map(
+      section => {
+
+        const lines =
+          section
+            .split("\n")
+            .map(
+              line =>
+                line.trim()
+            )
+            .filter(Boolean);
+
+
+        if (!lines.length) {
+
+          return "";
+
+        }
+
+
+        const title =
+          lines[0];
+
+
+        const bullets =
+          lines
+            .slice(1)
+            .map(
+              line =>
+                line
+                  .replace(
+                    /^[-•*▸►]\s*/,
+                    ""
+                  )
+                  .replace(
+                    /^\d+\.\s*/,
+                    ""
+                  )
+                  .trim()
+            )
+            .filter(Boolean);
+
+
+        if (!bullets.length) {
+
+          return `
+            <div class="result-card">
+
+              <h3>
+                ${escapeHtml(title)}
+              </h3>
+
+              <ul>
+
+                <li>
+                  ${escapeHtml(title)}
+                </li>
+
+              </ul>
+
+            </div>
+          `;
+
+        }
+
+
+        return `
+          <div class="result-card">
+
+            <h3>
+              ${escapeHtml(title)}
+            </h3>
+
+            <ul>
+
+              ${bullets
+                .map(
+                  bullet => `
+                    <li>
+                      ${escapeHtml(
+                        bullet
+                      )}
+                    </li>
+                  `
+                )
+                .join("")}
+
+            </ul>
+
+          </div>
+        `;
+
+      }
+    )
+    .join("");
+
+}
+
+
+/* ══════════════════════════════
+   EXTRACT AI ANALYSIS
+══════════════════════════════ */
+
+function extractAnalysis(
+  json,
+  rawText
+) {
+
+  if (
+    Array.isArray(json) &&
+    json.length > 0
+  ) {
+
+    json = json[0];
+
+  }
+
+
+  if (
+    json?.analysis &&
+    typeof json.analysis ===
+      "string" &&
+    json.analysis.trim()
+  ) {
+
+    return json.analysis.trim();
+
+  }
+
+
+  try {
+
+    const text =
+      json
+        ?.output
+        ?.[0]
+        ?.content
+        ?.[0]
+        ?.text;
+
+
+    if (
+      text &&
+      text.trim()
+    ) {
+
+      return text.trim();
+
+    }
+
+  } catch (_) {}
+
+
+  try {
+
+    const content =
+      json?.message?.content;
+
+
+    if (
+      Array.isArray(content)
+    ) {
+
+      const text =
+        content
+          .find(
+            item =>
+              item.type ===
+              "text"
+          )
+          ?.text;
+
+
+      if (
+        text &&
+        text.trim()
+      ) {
+
+        return text.trim();
+
+      }
+
+    }
+
+
+    if (
+      typeof content ===
+        "string" &&
+      content.trim()
+    ) {
+
+      return content.trim();
+
+    }
+
+  } catch (_) {}
+
+
+  if (
+    json?.text &&
+    typeof json.text ===
+      "string" &&
+    json.text.trim()
+  ) {
+
+    return json.text.trim();
+
+  }
+
+
+  if (
+    rawText &&
+    rawText.trim() &&
+    !rawText
+      .trim()
+      .startsWith("{") &&
+    !rawText
+      .trim()
+      .startsWith("[")
+  ) {
+
+    return rawText.trim();
+
+  }
+
+
+  if (json) {
+
+    for (
+      const key of Object.keys(json)
+    ) {
+
+      if (
+        typeof json[key] ===
+          "string" &&
+        json[key].length > 100
+      ) {
+
+        return json[key].trim();
+
+      }
+
+    }
+
+  }
+
+
+  return null;
+
+}
+
+
+/* ══════════════════════════════
+   AI STRATEGY ANALYZER
+══════════════════════════════ */
+
+async function analyze() {
+
+  const btn =
+    document.getElementById(
+      "generateBtn"
+    );
+
+
+  const spinner =
+    document.getElementById(
+      "spinner"
+    );
+
+
+  const label =
+    document.getElementById(
+      "generateLabel"
+    );
+
+
+  const result =
+    document.getElementById(
+      "result"
+    );
+
+
+  const track =
+    document.getElementById(
+      "track"
+    ).value;
+
+
+  const teamName =
+    myTeamData?.name ||
+    DEFAULT_TEAM_NAME;
+
+
+  const payload = {
+
+    team:
+      teamName,
+
+    track:
+      track,
+
+    downforce:
+      document.getElementById(
+        "downforce"
+      ).value,
+
+    drag:
+      document.getElementById(
+        "drag"
+      ).value,
+
+    tire_degradation:
+      document.getElementById(
+        "tire"
+      ).value,
+
+    energy_efficiency:
+      document.getElementById(
+        "energy_efficiency"
+      ).value,
+
+    straight_line_speed:
+      document.getElementById(
+        "straight_line_speed"
+      ).value,
+
+    cornering:
+      document.getElementById(
+        "cornering"
+      ).value,
+
+    weather:
+      document.getElementById(
+        "weather"
+      ).value
+
+  };
+
+
+  btn.disabled =
+    true;
+
+
+  spinner.style.display =
+    "block";
+
+
+  label.textContent =
+    "Generating…";
+
+
+  result.innerHTML = `
+    <div class="loading-wrap">
+
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+
+      <p>
+        Analyzing
+        ${escapeHtml(track)}
+        strategy
+      </p>
+
+    </div>
+  `;
+
+
+  try {
+
+    const response =
+      await fetch(
+        `${API_BASE_URL}/strategy/analyze`,
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify(
+              payload
+            )
+        }
+      );
+
+
+    if (!response.ok) {
+
+      const errorText =
+        await response.text();
+
+
+      throw new Error(
+        `Strategy server returned ${response.status}: ${errorText}`
+      );
+
+    }
+
+
+    const rawText =
+      await response.text();
+
+
+    let json =
+      null;
+
+
+    try {
+
+      json =
+        JSON.parse(
+          rawText
+        );
+
+    } catch (_) {}
+
+
+    const analysis =
+      extractAnalysis(
+        json,
+        rawText
+      );
+
+
+    if (!analysis) {
+
+      result.innerHTML = `
+
+        <div class="error-msg">
+
+          ⚠️ Strategy generation failed.
+
+          <br>
+
+          <small
+            style="
+              opacity:.6;
+              margin-top:6px;
+              display:block;
+            "
+          >
+            The backend responded,
+            but no analysis text was found.
+          </small>
+
+        </div>
+
+        <div
+          class="debug-box"
+          style="display:block;"
+        >
+
+          RAW RESPONSE:
+
+          ${escapeHtml(
+            rawText
+          )}
+
+        </div>
+
+      `;
+
+      return;
+
+    }
+
+
+    result.innerHTML =
+      formatResult(
+        analysis
+      );
+
+
+  } catch (error) {
+
+    console.error(
+      "Strategy request failed:",
+      error
+    );
+
+
+    result.innerHTML = `
+
+      <div class="error-msg">
+
+        ⚠️ Strategy generation failed.
+
+        <br>
+
+        <small
+          style="
+            opacity:.6;
+            margin-top:6px;
+            display:block;
+          "
+        >
+          ${escapeHtml(
+            error.message
+          )}
+        </small>
+
+      </div>
+
+    `;
+
+
+  } finally {
+
+    btn.disabled =
+      false;
+
+
+    spinner.style.display =
+      "none";
+
+
+    label.textContent =
+      "⚡ Generate Strategy";
+
+  }
+
+}
+
+
+/* ══════════════════════════════
+   START
+══════════════════════════════ */
+
+boot();
+
+</script>
+
+</body>
+
+</html>
